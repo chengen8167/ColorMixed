@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-Hant"> 
+<html lang="zh-Hant">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -15,11 +15,43 @@
   .ctrl-btn{width:48px;height:48px;border-radius:12px;border:0;background:#0ea5a4;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px}
   .ctrl-btn.trash{background:#2563eb}
   .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-  .swatch{height:110px;border-radius:14px;position:relative;touch-action:manipulation;display:flex;align-items:flex-start;justify-content:flex-end}
-  .swatch .check{display:none;position:absolute;top:8px;right:8px;width:36px;height:36px;border-radius:18px;background:rgba(0,0,0,0.35);color:#fff;align-items:center;justify-content:center;display:flex;font-size:18px}
-  .swatch.sel{box-shadow:0 6px 18px rgba(0,0,0,.18);outline:4px solid rgba(255,255,255,0.25)}
+  /* improved swatch styles */
+  .swatch{
+    height:110px;
+    border-radius:14px;
+    position:relative;
+    touch-action:manipulation;
+    display:flex;
+    align-items:flex-start;
+    justify-content:flex-end;
+    transition: transform .18s ease, box-shadow .18s ease, outline .18s ease;
+    transform-origin: center;
+  }
+  .swatch .check{
+    display:none;
+    position:absolute;
+    top:8px; right:8px;
+    width:36px; height:36px;
+    border-radius:18px;
+    background:rgba(0,0,0,0.35);
+    color:#fff;
+    align-items:center;
+    justify-content:center;
+    display:flex;
+    font-size:18px;
+  }
+  .swatch.sel{
+    transform: translateY(-6px) scale(1.03);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.25);
+    outline: 4px solid rgba(255,255,255,0.22);
+  }
+  .swatch.sel .check{
+    display:flex;
+  }
+  .swatch:active{ transform: scale(0.98); }
+
   .count{font-weight:600;color:#334155}
-  .bubble{position:absolute;width:80px;height:80px;border-radius:50%;pointer-events:none;mix-blend-mode:screen;transform:translate(var(--x),var(--y)) scale(var(--s));opacity:var(--o);transition:transform .8s cubic-bezier(.2,.9,.3,1),opacity .8s}
+  .bubble{position:absolute;width:80px;height:80px;border-radius:50%;pointer-events:none;mix-blend-mode:screen;transform:translate(var(--x),var(--y)) scale(var(--s));opacity:var(--o);transition:tr[...]
   /* small hint hidden for kids */
   .hint{color:#6b7280;font-size:13px;margin-top:8px;text-align:center}
   @media (max-width:420px){
