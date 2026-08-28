@@ -5,59 +5,43 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>顏料混色器</title>
 <style>
-  :root{--pad:14px}
+  :root{--pad:12px}
   html,body{height:100%;margin:0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:#f6f7fb}
-  .wrap{max-width:820px;margin:0 auto;padding:16px}
+  .wrap{max-width:1000px;margin:0 auto;padding:12px;height:100vh;display:flex;flex-direction:column}
+
+  /* result small so palette fits on one screen */
   .result {
-    height:320px;border-radius:16px;background:#fff;box-shadow:0 8px 20px rgba(0,0,0,.12);position:relative;overflow:hidden;margin-bottom:14px;
+    height:160px;border-radius:12px;background:#fff;box-shadow:0 8px 20px rgba(0,0,0,.12);position:relative;overflow:hidden;margin-bottom:10px;flex:0 0 auto;
   }
-  .icon-row{display:flex;align-items:center;gap:10px;padding:10px}
-  .ctrl-btn{width:48px;height:48px;border-radius:12px;border:0;background:#0ea5a4;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px}
+  .icon-row{display:flex;align-items:center;gap:10px;padding:8px;flex:0 0 auto}
+  .ctrl-btn{width:44px;height:44px;border-radius:10px;border:0;background:#0ea5a4;color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px}
   .ctrl-btn.trash{background:#2563eb}
-  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-  /* improved swatch styles */
+
+  /* grid tuned to show all colors on one screen */
+  .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;align-content:start}
+
   .swatch{
-    height:84px;
-    border-radius:14px;
-    position:relative;
-    touch-action:manipulation;
-    display:flex;
-    align-items:flex-start;
-    justify-content:flex-end;
-    transition: transform .18s ease, box-shadow .18s ease, outline .18s ease;
-    transform-origin: center;
+    border-radius:10px;position:relative;touch-action:manipulation;display:flex;align-items:flex-start;justify-content:flex-end;transition: transform .18s ease, box-shadow .18s ease, outline .18s ease;transform-origin:center;
+    height:calc((100vh - 160px - 80px - 24px) / 4); /* result + controls + padding distributed into 4 rows */
+    min-height:48px;
   }
-  .swatch .check{
-    display:none;
-    position:absolute;
-    top:6px; right:6px;
-    width:30px; height:30px;
-    border-radius:14px;
-    background:rgba(0,0,0,0.35);
-    color:#fff;
-    align-items:center;
-    justify-content:center;
-    display:flex;
-    font-size:14px;
-  }
-  .swatch.sel{
-    transform: translateY(-6px) scale(1.05);
-    box-shadow: 0 12px 28px rgba(0,0,0,0.25);
-    outline: 4px solid rgba(255,255,255,0.22);
-  }
-  .swatch.sel .check{
-    display:flex;
-  }
-  .swatch:active{ transform: scale(0.98); }
+  .swatch .check{display:none;position:absolute;top:6px;right:6px;width:30px;height:30px;border-radius:14px;background:rgba(0,0,0,0.35);color:#fff;align-items:center;justify-content:center;display:flex;font-size:14px}
+  .swatch.sel{transform: translateY(-6px) scale(1.05);box-shadow:0 12px 28px rgba(0,0,0,0.25);outline:4px solid rgba(255,255,255,0.22)}
+  .swatch.sel .check{display:flex}
+  .swatch:active{transform:scale(0.98)}
 
   .count{font-weight:600;color:#334155}
-  .bubble{position:absolute;width:80px;height:80px;border-radius:50%;pointer-events:none;mix-blend-mode:screen;transform:translate(var(--x),var(--y)) scale(var(--s));opacity:var(--o);transition:transform .8s cubic-bezier(.2,.9,.3,1),opacity .8s}
-  /* small hint hidden for kids */
+  .bubble{position:absolute;width:72px;height:72px;border-radius:50%;pointer-events:none;mix-blend-mode:screen;transform:translate(var(--x),var(--y)) scale(var(--s));opacity:var(--o);transition:transform .8s cubic-bezier(.2,.9,.3,1),opacity .8s}
   .hint{color:#6b7280;font-size:13px;margin-top:8px;text-align:center}
-  @media (max-width:720px){
-    .grid{grid-template-columns:repeat(3,1fr)}
-    .swatch{height:100px}
-    .result{height:260px}
+
+  @media (max-width:900px){
+    .grid{grid-template-columns:repeat(4,1fr)}
+    /* use 6 rows for smaller screens (adjust so all visible) */
+    .swatch{height:calc((100vh - 160px - 120px - 24px) / 6)}
+  }
+  @media (max-width:420px){
+    .swatch{height:64px}
+    .result{height:140px}
   }
 </style>
 </head>
@@ -70,21 +54,18 @@
   </div>
 
   <div class="icon-row">
-    <button id="clearBtn" class="ctrl-btn trash" title="清除" aria-label="清除">
-      🗑
-    </button>
+    <button id="clearBtn" class="ctrl-btn trash" title="清除" aria-label="清除">🗑</button>
     <div style="flex:1"></div>
     <div id="count" class="count">0</div>
     <div style="width:8px"></div>
     <button id="saveBtn" class="ctrl-btn" title="儲存" aria-label="儲存">⬇️</button>
   </div>
 
-  <div id="palette" class="grid" style="margin-top:12px"></div>
+  <div id="palette" class="grid" style="margin-top:8px"></div>
 
   <div class="hint" aria-hidden="true">點選顏色，最多選 6 色</div>
 </div>
 
-<!-- html2canvas for saving -->
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>
 (() => {
@@ -106,172 +87,42 @@
   const saveBtn = document.getElementById('saveBtn');
   const clearBtn = document.getElementById('clearBtn');
 
-  // synth
   const speak = (t) => {
     try {
       const u = new SpeechSynthesisUtterance(t);
-      u.lang = 'zh-TW';
-      u.rate = 0.8;
-      speechSynthesis.cancel();
-      speechSynthesis.speak(u);
+      u.lang = 'zh-TW'; u.rate = 0.8; speechSynthesis.cancel(); speechSynthesis.speak(u);
     } catch(e){}
   };
 
-  // audio tap via WebAudio
   const tap = (() => {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    return ()=> {
-      const o = ctx.createOscillator(); const g = ctx.createGain();
-      o.type='sine'; o.frequency.value=880; g.gain.value=0.0001;
-      o.connect(g); g.connect(ctx.destination);
-      o.start();
-      g.gain.exponentialRampToValueAtTime(0.02, ctx.currentTime + 0.001);
-      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.12);
-      setTimeout(()=>{ o.stop() }, 160);
-    };
+    return ()=>{ const o = ctx.createOscillator(), g = ctx.createGain(); o.type='sine'; o.frequency.value=880; g.gain.value=0.0001; o.connect(g); g.connect(ctx.destination); o.start(); g.gain.exponentialRampToValueAtTime(0.02, ctx.currentTime + 0.001); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.12); setTimeout(()=>{ o.stop() }, 160); };
   })();
 
-  function hexToRgb(hex){
-    const h = hex.replace('#','');
-    const v = parseInt(h,16);
-    return [(v>>16)&255,(v>>8)&255,v&255].map(x=>x/255);
-  }
-  function rgbToCmyk(r,g,b){
-    const k = 1 - Math.max(r,g,b);
-    if(k>=0.999) return [0,0,0,1];
-    const c = (1-r-k)/(1-k);
-    const m = (1-g-k)/(1-k);
-    const y = (1-b-k)/(1-k);
-    return [c,m,y,k];
-  }
-  function cmykToRgb(c,m,y,k){
-    const r=(1-c)*(1-k), g=(1-m)*(1-k), b=(1-y)*(1-k);
-    return [Math.round(r*255),Math.round(g*255),Math.round(b*255)];
-  }
-  function rgbToHex(r,g,b){
-    return '#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');
-  }
+  function hexToRgb(hex){ const h = hex.replace('#',''); const v = parseInt(h,16); return [(v>>16)&255,(v>>8)&255,v&255].map(x=>x/255); }
+  function rgbToCmyk(r,g,b){ const k = 1 - Math.max(r,g,b); if(k>=0.999) return [0,0,0,1]; const c = (1-r-k)/(1-k); const m = (1-g-k)/(1-k); const y = (1-b-k)/(1-k); return [c,m,y,k]; }
+  function cmykToRgb(c,m,y,k){ const r=(1-c)*(1-k), g=(1-m)*(1-k), b=(1-y)*(1-k); return [Math.round(r*255),Math.round(g*255),Math.round(b*255)]; }
+  function rgbToHex(r,g,b){ return '#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join(''); }
 
   function mixSelected(){
-    if(selected.size===0){
-      resultEl.style.background='#ffffff';
-      countEl.textContent='0';
-      return;
-    }
-    const ids = Array.from(selected);
-    countEl.textContent = ''+ids.length;
-    const items = ids.map(i=>palette[i]);
-    // average CMYK
-    let c=0,m=0,y=0,k=0;
-    for(const it of items){
-      const [r,g,b] = hexToRgb(it.hex);
-      const [cc,mm,yy,kk] = rgbToCmyk(r,g,b);
-      c+=cc; m+=mm; y+=yy; k+=kk;
-    }
-    const n = items.length;
-    const [ac,am,ay,ak] = [c/n,m/n,y/n,k/n];
-    const [R,G,B] = cmykToRgb(ac,am,ay,ak);
-    const hex = rgbToHex(R,G,B);
-    resultEl.style.background = hex;
+    if(selected.size===0){ resultEl.style.background='#ffffff'; countEl.textContent='0'; return; }
+    const ids = Array.from(selected); countEl.textContent = ''+ids.length; const items = ids.map(i=>palette[i]);
+    let c=0,m=0,y=0,k=0; for(const it of items){ const [r,g,b] = hexToRgb(it.hex); const [cc,mm,yy,kk] = rgbToCmyk(r,g,b); c+=cc; m+=mm; y+=yy; k+=kk; }
+    const n = items.length; const [ac,am,ay,ak] = [c/n,m/n,y/n,k/n]; const [R,G,B] = cmykToRgb(ac,am,ay,ak); const hex = rgbToHex(R,G,B); resultEl.style.background = hex;
   }
 
-  function spawnBubble(colorHex){
-    const b = document.createElement('div');
-    b.className='bubble';
-    b.style.background = colorHex;
-    // random start pos inside result
-    const rw = resultEl.clientWidth, rh = resultEl.clientHeight;
-    const startX = (Math.random()*rw - rw/2) + 'px';
-    const startY = (-rh/2 + 20) + 'px';
-    b.style.setProperty('--x', startX);
-    b.style.setProperty('--y', startY);
-    b.style.setProperty('--s','0.6');
-    b.style.setProperty('--o','0');
-    resultEl.appendChild(b);
-    // force reflow then animate to center
-    requestAnimationFrame(()=>{
-      b.style.setProperty('--x','0px');
-      b.style.setProperty('--y','0px');
-      b.style.setProperty('--s','1');
-      b.style.setProperty('--o','0.95');
-      // after move then fade
-      setTimeout(()=>{
-        b.style.setProperty('--s','0.6');
-        b.style.setProperty('--o','0');
-        b.style.setProperty('--y','10px');
-        setTimeout(()=>{ b.remove() }, 900);
-      }, 900);
-    });
-  }
+  function spawnBubble(colorHex){ const b = document.createElement('div'); b.className='bubble'; b.style.background = colorHex; const rw = resultEl.clientWidth, rh = resultEl.clientHeight; const startX = (Math.random()*rw - rw/2) + 'px'; const startY = (-rh/2 + 20) + 'px'; b.style.setProperty('--x', startX); b.style.setProperty('--y', startY); b.style.setProperty('--s','0.6'); b.style.setProperty('--o','0'); resultEl.appendChild(b); requestAnimationFrame(()=>{ b.style.setProperty('--x','0px'); b.style.setProperty('--y','0px'); b.style.setProperty('--s','1'); b.style.setProperty('--o','0.95'); setTimeout(()=>{ b.style.setProperty('--s','0.6'); b.style.setProperty('--o','0'); b.style.setProperty('--y','10px'); setTimeout(()=>{ b.remove() }, 900); }, 900); }); }
 
-  function toggleIndex(i){
-    if(selected.has(i)){
-      selected.delete(i);
-    } else {
-      if(selected.size >= maxSelect) {
-        // small shake
-        resultEl.animate([{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'translateX(0)'}],{duration:220});
-        return;
-      }
-      selected.add(i);
-      spawnBubble(palette[i].hex);
-    }
-    tap();
-    speak(palette[i].name);
-    updateSwatches();
-    mixSelected();
-  }
+  function toggleIndex(i){ if(selected.has(i)){ selected.delete(i); } else { if(selected.size >= maxSelect) { resultEl.animate([{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'translateX(0)'}],{duration:220}); return; } selected.add(i); spawnBubble(palette[i].hex); } tap(); speak(palette[i].name); updateSwatches(); mixSelected(); }
 
-  function updateSwatches(){
-    paletteEl.querySelectorAll('.swatch').forEach((el,idx)=>{
-      const isSel = selected.has(idx);
-      el.classList.toggle('sel', isSel);
-      el.setAttribute('aria-pressed', isSel ? 'true' : 'false');
-      const check = el.querySelector('.check');
-      if (check) check.style.display = isSel ? 'flex' : 'none';
-    });
-  }
+  function updateSwatches(){ paletteEl.querySelectorAll('.swatch').forEach((el, idx) => { const isSel = selected.has(idx); el.classList.toggle('sel', isSel); el.setAttribute('aria-pressed', isSel ? 'true' : 'false'); const check = el.querySelector('.check'); if (check) check.style.display = isSel ? 'flex' : 'none'; }); }
 
-  // build UI
-  palette.forEach((p, idx)=>{
-    const d = document.createElement('button');
-    d.className='swatch';
-    d.style.background = p.hex;
-    d.setAttribute('aria-label', p.name);
-    d.innerHTML = '<div class="check">✓</div>';
-    d.addEventListener('click', ()=> toggleIndex(idx));
-    paletteEl.appendChild(d);
-  });
+  palette.forEach((p, idx)=>{ const d = document.createElement('button'); d.className='swatch'; d.style.background = p.hex; d.setAttribute('aria-label', p.name); d.innerHTML = '<div class="check">✓</div>'; d.addEventListener('click', ()=> toggleIndex(idx)); paletteEl.appendChild(d); });
 
-  clearBtn.addEventListener('click', ()=>{
-    selected.clear();
-    updateSwatches();
-    mixSelected();
-    tap();
-  });
+  clearBtn.addEventListener('click', ()=>{ selected.clear(); updateSwatches(); mixSelected(); tap(); });
+  helpBtn.addEventListener('click', ()=>{ speak('點選大顏色按鈕，最多選六色，看看混合結果。'); });
+  saveBtn.addEventListener('click', ()=>{ html2canvas(resultEl, {useCORS:true}).then(canvas=>{ const data = canvas.toDataURL('image/png'); const a = document.createElement('a'); a.href = data; a.download = 'mix.png'; if(navigator.userAgent.match(/iPhone|iPad|iPod/)){ const w = window.open(data, '_blank'); if(!w) alert('開啟新分頁受阻，請使用截圖保存。'); } else { a.click(); } }).catch(()=>{ alert('無法自動儲存，請使用系統截圖。'); }); });
 
-  helpBtn.addEventListener('click', ()=>{
-    speak('點選大顏色按鈕，最多選六色，看看混合結果。');
-  });
-
-  saveBtn.addEventListener('click', ()=>{
-    // use html2canvas to snapshot the result area
-    html2canvas(resultEl, {useCORS:true}).then(canvas=>{
-      const data = canvas.toDataURL('image/png');
-      const a = document.createElement('a'); a.href = data; a.download = 'mix.png';
-      // iOS Safari: open image in new tab for long press save
-      if(navigator.userAgent.match(/iPhone|iPad|iPod/)){
-        const w = window.open(data, '_blank');
-        if(!w) alert('開啟新分頁受阻，請使用截圖保存。');
-      } else {
-        a.click();
-      }
-    }).catch(()=>{
-      alert('無法自動儲存，請使用系統截圖。');
-    });
-  });
-
-  // initial
   mixSelected();
 
 })();
