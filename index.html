@@ -16,6 +16,7 @@
   .icon-row{display:flex;align-items:center;gap:10px;padding:8px;flex:0 0 auto}
   .ctrl-btn{width:44px;height:44px;border-radius:10px;border:0;background:#0ea5a4;color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px}
   .ctrl-btn.trash{background:#2563eb}
+  .ctrl-btn.secondary{background:#64748b}
 
   /* grid tuned to show all colors on one screen */
   .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;align-content:start}
@@ -23,7 +24,7 @@
   .swatch{
     border-radius:10px;position:relative;touch-action:manipulation;display:flex;align-items:flex-start;justify-content:flex-end;transition: transform .18s ease, box-shadow .18s ease, outline .18s ease;transform-origin:center;
     height:calc((100vh - 160px - 80px - 24px) / 4); /* result + controls + padding distributed into 4 rows */
-    min-height:48px;
+    min-height:48px;overflow:hidden;border:1px solid rgba(0,0,0,0.03);
   }
   .swatch .check{display:none;position:absolute;top:6px;right:6px;width:30px;height:30px;border-radius:14px;background:rgba(0,0,0,0.35);color:#fff;align-items:center;justify-content:center;display:flex;font-size:14px}
   .swatch.sel{transform: translateY(-6px) scale(1.05);box-shadow:0 12px 28px rgba(0,0,0,0.25);outline:4px solid rgba(255,255,255,0.22)}
@@ -40,6 +41,7 @@
     .swatch{height:calc((100vh - 160px - 120px - 24px) / 6)}
   }
   @media (max-width:420px){
+    .grid{grid-template-columns:repeat(3,1fr)}
     .swatch{height:64px}
     .result{height:140px}
   }
@@ -59,6 +61,8 @@
     <div id="count" class="count">0</div>
     <div style="width:8px"></div>
     <button id="saveBtn" class="ctrl-btn" title="儲存" aria-label="儲存">⬇️</button>
+    <div style="width:8px"></div>
+    <button id="langBtn" class="ctrl-btn secondary" title="語音切換" aria-label="語音切換">中</button>
   </div>
 
   <div id="palette" class="grid" style="margin-top:8px"></div>
@@ -75,7 +79,8 @@
     {name:'綠',hex:'#43A047'},{name:'青',hex:'#00897B'},{name:'青藍',hex:'#00ACC1'},{name:'天藍',hex:'#26C6DA'},
     {name:'藍',hex:'#1E88E5'},{name:'靛藍',hex:'#5C6BC0'},{name:'紫',hex:'#8E24AA'},{name:'薰衣',hex:'#D1C4E9'},
     {name:'粉',hex:'#F06292'},{name:'粉亮',hex:'#FF80AB'},{name:'棕',hex:'#BCAAA4'},{name:'淺棕',hex:'#8D6E63'},
-    {name:'深棕',hex:'#6D4C41'},{name:'咖',hex:'#795548'},{name:'灰',hex:'#9E9E9E'},{name:'黑',hex:'#000000'}
+    {name:'深棕',hex:'#6D4C41'},{name:'咖',hex:'#795548'},{name:'灰',hex:'#9E9E9E'},{name:'白',hex:'#FFFFFF'},
+    {name:'黑',hex:'#000000'}
   ];
 
   const maxSelect = 6;
@@ -86,11 +91,17 @@
   const helpBtn = document.getElementById('helpBtn');
   const saveBtn = document.getElementById('saveBtn');
   const clearBtn = document.getElementById('clearBtn');
+  const langBtn = document.getElementById('langBtn');
+
+  let speechLang = 'zh-TW'; // 'en-US' or 'zh-TW'
 
   const speak = (t) => {
     try {
       const u = new SpeechSynthesisUtterance(t);
-      u.lang = 'zh-TW'; u.rate = 0.8; speechSynthesis.cancel(); speechSynthesis.speak(u);
+      u.lang = speechLang;
+      u.rate = 0.8;
+      speechSynthesis.cancel();
+      speechSynthesis.speak(u);
     } catch(e){}
   };
 
@@ -103,6 +114,8 @@
   function rgbToCmyk(r,g,b){ const k = 1 - Math.max(r,g,b); if(k>=0.999) return [0,0,0,1]; const c = (1-r-k)/(1-k); const m = (1-g-k)/(1-k); const y = (1-b-k)/(1-k); return [c,m,y,k]; }
   function cmykToRgb(c,m,y,k){ const r=(1-c)*(1-k), g=(1-m)*(1-k), b=(1-y)*(1-k); return [Math.round(r*255),Math.round(g*255),Math.round(b*255)]; }
   function rgbToHex(r,g,b){ return '#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join(''); }
+
+  function isLight(hex){ const [r,g,b] = hexToRgb(hex); const lum = 0.2126*r + 0.7152*g + 0.0722*b; return lum > 0.88; }
 
   function mixSelected(){
     if(selected.size===0){ resultEl.style.background='#ffffff'; countEl.textContent='0'; return; }
@@ -117,12 +130,21 @@
 
   function updateSwatches(){ paletteEl.querySelectorAll('.swatch').forEach((el, idx) => { const isSel = selected.has(idx); el.classList.toggle('sel', isSel); el.setAttribute('aria-pressed', isSel ? 'true' : 'false'); const check = el.querySelector('.check'); if (check) check.style.display = isSel ? 'flex' : 'none'; }); }
 
-  palette.forEach((p, idx)=>{ const d = document.createElement('button'); d.className='swatch'; d.style.background = p.hex; d.setAttribute('aria-label', p.name); d.innerHTML = '<div class="check">✓</div>'; d.addEventListener('click', ()=> toggleIndex(idx)); paletteEl.appendChild(d); });
+  // build UI
+  palette.forEach((p, idx)=>{ const d = document.createElement('button'); d.className='swatch'; d.style.background = p.hex; if(isLight(p.hex)) d.style.border = '1px solid rgba(0,0,0,0.12)'; d.setAttribute('aria-label', p.name); d.innerHTML = '<div class="check">✓</div>'; d.addEventListener('click', ()=> toggleIndex(idx)); paletteEl.appendChild(d); });
 
   clearBtn.addEventListener('click', ()=>{ selected.clear(); updateSwatches(); mixSelected(); tap(); });
-  helpBtn.addEventListener('click', ()=>{ speak('點選大顏色按鈕，最多選六色，看看混合結果。'); });
-  saveBtn.addEventListener('click', ()=>{ html2canvas(resultEl, {useCORS:true}).then(canvas=>{ const data = canvas.toDataURL('image/png'); const a = document.createElement('a'); a.href = data; a.download = 'mix.png'; if(navigator.userAgent.match(/iPhone|iPad|iPod/)){ const w = window.open(data, '_blank'); if(!w) alert('開啟新分頁受阻，請使用截圖保存。'); } else { a.click(); } }).catch(()=>{ alert('無法自動儲存，請使用系統截圖。'); }); });
+  helpBtn.addEventListener('click', ()=>{ speak(speechLang==='zh-TW' ? '點選大顏色按鈕，最多選六色，看看混合結果。' : 'Tap a color, pick up to six, see the mix.'); });
+  saveBtn.addEventListener('click', ()=>{ html2canvas(resultEl, {useCORS:true}).then(canvas=>{ const data = canvas.toDataURL('image/png'); const a = document.createElement('a'); a.href = data; a.download = 'mix.png'; if(navigator.userAgent.match(/iPhone|iPad|iPod/)){ const w = window.open(data, '_blank'); if(!w) alert(speechLang==='zh-TW' ? '開啟新分頁受阻，請使用截圖保存。' : 'Unable to open new tab, please use screenshot.'); } else { a.click(); } }).catch(()=>{ alert(speechLang==='zh-TW' ? '無法自動儲存，請使用系統截圖。' : 'Cannot save automatically, please use screenshot.'); }); });
 
+  langBtn.addEventListener('click', ()=>{
+    speechLang = (speechLang === 'zh-TW') ? 'en-US' : 'zh-TW';
+    langBtn.textContent = (speechLang === 'zh-TW') ? '中' : 'EN';
+    // brief confirmation
+    speak(speechLang === 'zh-TW' ? '中文語音' : 'English voice');
+  });
+
+  // initial
   mixSelected();
 
 })();
