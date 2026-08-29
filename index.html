@@ -9,12 +9,13 @@
   html,body{height:100%;margin:0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:#f6f7fb}
   .wrap{max-width:1000px;margin:0 auto;padding:12px;height:100vh;display:flex;flex-direction:column}
 
-  .icon-row{display:flex;align-items:center;gap:10px;padding:8px;flex:0 0 auto}
-  .ctrl-btn{width:44px;height:44px;border-radius:10px;border:0;background:#0ea5a4;color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer}
-  .ctrl-btn.trash{background:#2563eb}
+  .icon-row{display:flex;align-items:center;justify-content:center;gap:12px;padding:12px;flex:0 0 auto}
+  .ctrl-btn{width:44px;height:44px;border-radius:10px;border:0;background:#0ea5a4;color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;transition:transform .1s}
+  .ctrl-btn:active{transform:scale(0.95)}
+  .ctrl-btn.trash{background:#2563eb;width:52px;height:52px;font-size:20px}
   .ctrl-btn.secondary{background:#64748b}
 
-  .grid-container{position:relative;width:100%;max-width:650px;aspect-ratio:1/1;margin:0 auto;display:flex;align-items:center;justify-content:center}
+  .grid-container{position:relative;width:100%;max-width:650px;aspect-ratio:1/1;margin:20px auto 0;display:flex;align-items:center;justify-content:center;flex:1}
   .grid{position:absolute;width:100%;height:100%;top:0;left:0}
 
   .result {
@@ -33,9 +34,9 @@
 
   .count{font-weight:600;color:#334155;font-size:18px}
   .bubble{position:absolute;width:72px;height:72px;border-radius:50%;pointer-events:none;mix-blend-mode:screen;transform:translate(var(--x),var(--y)) scale(var(--s));opacity:var(--o);transition:transform .8s cubic-bezier(.2,.9,.3,1),opacity .8s}
-  .hint{color:#6b7280;font-size:13px;margin-top:12px;text-align:center}
+  .hint{color:#6b7280;font-size:13px;margin-top:16px;text-align:center;flex:0 0 auto}
 
-  .ctrl-row-top{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px}
+  .ctrl-row-top{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:0}
 
   @media (max-width:900px){
     .grid-container{max-width:550px}
@@ -43,9 +44,10 @@
     .result{width:240px;height:240px}
   }
   @media (max-width:520px){
-    .grid-container{max-width:420px}
+    .grid-container{max-width:420px;margin:16px auto 0}
     .swatch{width:70px;height:70px;font-size:12px}
     .result{width:200px;height:200px;font-size:11px}
+    .ctrl-btn.trash{width:48px;height:48px;font-size:18px}
   }
 </style>
 </head>
