@@ -19,8 +19,10 @@
   .grid{position:absolute;width:100%;height:100%;top:0;left:0}
 
   .result {
-    position:absolute;width:240px;height:240px;border-radius:50%;background:#fff;box-shadow:0 8px 20px rgba(0,0,0,.12);z-index:10;display:flex;align-items:center;justify-content:center;flex-direction:column;
+    position:absolute;width:240px;height:240px;border-radius:50%;background:#fff;box-shadow:0 8px 20px rgba(0,0,0,.12);z-index:10;display:flex;align-items:center;justify-content:center;flex-direction:column;cursor:pointer;border:none;padding:0;font-family:inherit;transition:transform .2s;
   }
+  .result:hover{transform:scale(1.05)}
+  .result:active{transform:scale(0.98)}
   .result-label{font-size:12px;color:#6b7280;font-weight:500;margin-top:6px}
 
   .swatch{
@@ -46,7 +48,7 @@
   @media (max-width:520px){
     .grid-container{max-width:420px;margin:25px auto 0}
     .swatch{width:70px;height:70px;font-size:12px}
-    .result{width:140px;height:140px;font-size:10px;pointer-events:none}
+    .result{width:140px;height:140px;font-size:10px}
     .result-label{margin-top:2px}
     .ctrl-btn.trash{width:48px;height:48px;font-size:18px}
   }
@@ -62,13 +64,13 @@
   </div>
 
   <div class="grid-container">
-    <div id="result" class="result" aria-live="polite">
+    <button id="result" class="result" aria-live="polite" title="點擊朗讀混色結果">
       <div class="result-label">混色結果</div>
-    </div>
+    </button>
     <div id="palette" class="grid"></div>
   </div>
 
-  <div class="hint" aria-hidden="true">點選顏色，最多選 6 色 • 相鄰顏色混合看中間的色彩</div>
+  <div class="hint" aria-hidden="true">點選顏色，最多選 6 色 • 點擊中間結果聽顏色名稱</div>
 </div>
 
 <script>
@@ -133,20 +135,103 @@
 
   function isLight(hex){ const [r,g,b] = hexToRgb(hex); const lum = 0.2126*r + 0.7152*g + 0.0722*b; return lum > 0.88; }
 
-  function mixSelected(){
-    if(selected.size===0){ resultEl.style.background='#ffffff'; countEl.textContent='0'; return; }
-    const ids = Array.from(selected); countEl.textContent = ''+ids.length; const items = ids.map(i=>palette[i]);
-    let c=0,m=0,y=0,k=0; for(const it of items){ const [r,g,b] = hexToRgb(it.hex); const [cc,mm,yy,kk] = rgbToCmyk(r,g,b); c+=cc; m+=mm; y+=yy; k+=kk; }
-    const n = items.length; const [ac,am,ay,ak] = [c/n,m/n,y/n,k/n]; const [R,G,B] = cmykToRgb(ac,am,ay,ak); const hex = rgbToHex(R,G,B); resultEl.style.background = hex;
+  // 顏色識別函數 - 根據混合結果 HEX 碼識別顏色名稱
+  function identifyColor(hex) {
+    const [r, g, b] = hexToRgb(hex);
+    const lum = 0.2126*r + 0.7152*g + 0.0722*b;
+    const h = parseInt(hex.slice(1), 16);
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const hue = max === min ? 0 : max === r ? ((g - b) / (max - min) * 60 + 360) % 360 : max === g ? ((b - r) / (max - min) * 60 + 120) : ((r - g) / (max - min) * 60 + 240);
+    const sat = max === 0 ? 0 : (max - min) / max;
+    const bright = max;
+
+    // 無彩色判斷
+    if (sat < 0.15) {
+      if (bright > 0.9) return isEnglish ? 'White' : '白';
+      if (bright < 0.2) return isEnglish ? 'Black' : '黑';
+      return isEnglish ? 'Gray' : '灰';
+    }
+
+    // 有彩色判斷 - 根據色調角度判斷
+    let colorFamily = '';
+    if (hue < 15 || hue >= 345) colorFamily = isEnglish ? 'Red' : '紅';
+    else if (hue < 45) colorFamily = isEnglish ? 'Orange' : '橙';
+    else if (hue < 75) colorFamily = isEnglish ? 'Yellow' : '黃';
+    else if (hue < 135) colorFamily = isEnglish ? 'Green' : '綠';
+    else if (hue < 195) colorFamily = isEnglish ? 'Cyan' : '青';
+    else if (hue < 255) colorFamily = isEnglish ? 'Blue' : '藍';
+    else if (hue < 285) colorFamily = isEnglish ? 'Purple' : '紫';
+    else if (hue < 315) colorFamily = isEnglish ? 'Pink' : '粉紅';
+    else colorFamily = isEnglish ? 'Brown' : '棕色';
+
+    // 亮度調整 - 加上深/淺的描述
+    let shade = '';
+    if (bright > 0.8 && sat < 0.5) shade = isEnglish ? ' Light' : '淺';
+    else if (bright < 0.4) shade = isEnglish ? ' Dark' : '深';
+    else if (bright < 0.6) shade = isEnglish ? ' Deep' : '深';
+
+    return colorFamily + shade;
   }
 
-  function spawnBubble(colorHex){ const b = document.createElement('div'); b.className='bubble'; b.style.background = colorHex; const rw = resultEl.clientWidth, rh = resultEl.clientHeight; const startX = (Math.random()*rw - rw/2) + 'px'; const startY = (-rh/2 + 20) + 'px'; b.style.setProperty('--x', startX); b.style.setProperty('--y', startY); b.style.setProperty('--s','0.6'); b.style.setProperty('--o','0'); resultEl.appendChild(b); requestAnimationFrame(()=>{ b.style.setProperty('--x','0px'); b.style.setProperty('--y','0px'); b.style.setProperty('--s','1'); b.style.setProperty('--o','0.95'); setTimeout(()=>{ b.style.setProperty('--s','0.6'); b.style.setProperty('--o','0'); b.style.setProperty('--y','10px'); setTimeout(()=>{ b.remove() }, 900); }, 900); }); }
+  function mixSelected(){
+    if(selected.size===0){ 
+      resultEl.style.background='#ffffff'; 
+      countEl.textContent='0'; 
+      return; 
+    }
+    const ids = Array.from(selected); 
+    countEl.textContent = ''+ids.length; 
+    const items = ids.map(i=>palette[i]);
+    let c=0,m=0,y=0,k=0; 
+    for(const it of items){ 
+      const [r,g,b] = hexToRgb(it.hex); 
+      const [cc,mm,yy,kk] = rgbToCmyk(r,g,b); 
+      c+=cc; m+=mm; y+=yy; k+=kk; 
+    }
+    const n = items.length; 
+    const [ac,am,ay,ak] = [c/n,m/n,y/n,k/n]; 
+    const [R,G,B] = cmykToRgb(ac,am,ay,ak); 
+    const hex = rgbToHex(R,G,B); 
+    resultEl.style.background = hex;
+    resultEl.dataset.hex = hex;
+  }
+
+  function spawnBubble(colorHex){ 
+    const b = document.createElement('div'); 
+    b.className='bubble'; 
+    b.style.background = colorHex; 
+    const rw = resultEl.clientWidth, rh = resultEl.clientHeight; 
+    const startX = (Math.random()*rw - rw/2) + 'px'; 
+    const startY = (-rh/2 + 20) + 'px'; 
+    b.style.setProperty('--x', startX); 
+    b.style.setProperty('--y', startY); 
+    b.style.setProperty('--s','0.6'); 
+    b.style.setProperty('--o','0'); 
+    resultEl.appendChild(b); 
+    requestAnimationFrame(()=>{ 
+      b.style.setProperty('--x','0px'); 
+      b.style.setProperty('--y','0px'); 
+      b.style.setProperty('--s','1'); 
+      b.style.setProperty('--o','0.95'); 
+      setTimeout(()=>{ 
+        b.style.setProperty('--s','0.6'); 
+        b.style.setProperty('--o','0'); 
+        b.style.setProperty('--y','10px'); 
+        setTimeout(()=>{ b.remove() }, 900); 
+      }, 900); 
+    }); 
+  }
 
   function toggleIndex(i){ 
     if(selected.has(i)){ selected.delete(i); } 
     else { 
-      if(selected.size >= maxSelect) { resultEl.animate([{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'translateX(0)'}],{duration:220}); return; } 
-      selected.add(i); spawnBubble(palette[i].hex); 
+      if(selected.size >= maxSelect) { 
+        resultEl.animate([{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'translateX(0)'}],{duration:220}); 
+        return; 
+      } 
+      selected.add(i); 
+      spawnBubble(palette[i].hex); 
     } 
     tap(); 
     const colorName = isEnglish ? palette[i].nameEN : palette[i].name;
@@ -192,9 +277,24 @@
     });
   }
 
-  clearBtn.addEventListener('click', ()=>{ selected.clear(); updateSwatches(); mixSelected(); tap(); });
+  // 結果視窗點擊朗讀
+  resultEl.addEventListener('click', ()=>{
+    if(selected.size === 0) return;
+    const hex = resultEl.dataset.hex || resultEl.style.background;
+    const colorName = identifyColor(hex);
+    tap();
+    speak(colorName, isEnglish ? 'en' : 'zh');
+  });
+
+  clearBtn.addEventListener('click', ()=>{ 
+    selected.clear(); 
+    updateSwatches(); 
+    mixSelected(); 
+    tap(); 
+  });
+  
   helpBtn.addEventListener('click', ()=>{ 
-    const msg = isEnglish ? 'Tap a color, pick up to six, see the mix.' : '點選大顏色按鈕，最多選六色。';
+    const msg = isEnglish ? 'Tap a color, pick up to six, see the mix. Click the result to hear the color.' : '點選大顏色按鈕，最多選六色。點擊中間結果聽顏色名稱。';
     speak(msg, isEnglish ? 'en' : 'zh');
   });
 
