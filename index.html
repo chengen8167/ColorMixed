@@ -165,13 +165,13 @@
     else if (hue < 315) colorFamily = isEnglish ? 'Pink' : '粉紅';
     else colorFamily = isEnglish ? 'Brown' : '棕色';
 
-    // 亮度調整 - 加上深/淺的描述
+    // 亮度調整 - 加上深/淺的描述（放在顏色前面）
     let shade = '';
-    if (bright > 0.8 && sat < 0.5) shade = isEnglish ? ' Light' : '淺';
-    else if (bright < 0.4) shade = isEnglish ? ' Dark' : '深';
-    else if (bright < 0.6) shade = isEnglish ? ' Deep' : '深';
+    if (bright > 0.8 && sat < 0.5) shade = isEnglish ? 'Light ' : '淺';
+    else if (bright < 0.4) shade = isEnglish ? 'Dark ' : '深';
+    else if (bright < 0.6) shade = isEnglish ? 'Deep ' : '深';
 
-    return colorFamily + shade;
+    return shade + colorFamily;
   }
 
   function mixSelected(){
