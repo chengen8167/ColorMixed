@@ -19,7 +19,7 @@
   .grid{position:absolute;width:100%;height:100%;top:0;left:0}
 
   .result {
-    position:absolute;width:200px;height:200px;border-radius:50%;background:#fff;box-shadow:0 8px 20px rgba(0,0,0,.12);z-index:10;display:flex;align-items:center;justify-content:center;flex-direction:column;
+    position:absolute;width:240px;height:240px;border-radius:50%;background:#fff;box-shadow:0 8px 20px rgba(0,0,0,.12);z-index:10;display:flex;align-items:center;justify-content:center;flex-direction:column;
   }
   .result-label{font-size:12px;color:#6b7280;font-weight:500;margin-top:6px}
 
@@ -41,12 +41,12 @@
   @media (max-width:900px){
     .grid-container{max-width:550px;margin:30px auto 0}
     .swatch{width:80px;height:80px;font-size:14px}
-    .result{width:180px;height:180px}
+    .result{width:200px;height:200px}
   }
   @media (max-width:520px){
     .grid-container{max-width:420px;margin:25px auto 0}
     .swatch{width:70px;height:70px;font-size:12px}
-    .result{width:90px;height:90px;font-size:10px;pointer-events:none}
+    .result{width:140px;height:140px;font-size:10px;pointer-events:none}
     .result-label{margin-top:2px}
     .ctrl-btn.trash{width:48px;height:48px;font-size:18px}
   }
@@ -73,20 +73,20 @@
 
 <script>
 (() => {
-  // 12色色輪排列（順時針）
+  // 12色色輪排列（色輪自然順序 + 無彩色）
   const palette = [
     {name:'紅',nameEN:'Red',hex:'#E53935'},        // 0: 12點
     {name:'橙',nameEN:'Orange',hex:'#FB8C00'},      // 1: 1點
     {name:'黃',nameEN:'Yellow',hex:'#FDD835'},      // 2: 2點
-    {name:'黃綠',nameEN:'Y-Green',hex:'#9CCC65'},   // 3: 3點
-    {name:'綠',nameEN:'Green',hex:'#43A047'},       // 4: 4點
-    {name:'青',nameEN:'Teal',hex:'#00897B'},        // 5: 5點
-    {name:'青藍',nameEN:'T-Blue',hex:'#0097A7'},    // 6: 6點
-    {name:'藍',nameEN:'Blue',hex:'#1E88E5'},        // 7: 7點
-    {name:'紫',nameEN:'Purple',hex:'#8E24AA'},      // 8: 8點
-    {name:'粉',nameEN:'Pink',hex:'#F06292'},        // 9: 9點
-    {name:'紅粉',nameEN:'R-Pink',hex:'#EC407A'},    // 10: 10點
-    {name:'棕',nameEN:'Brown',hex:'#8D6E63'}        // 11: 11點
+    {name:'綠',nameEN:'Green',hex:'#43A047'},       // 3: 3點
+    {name:'藍',nameEN:'Blue',hex:'#1E88E5'},        // 4: 4點
+    {name:'紫',nameEN:'Purple',hex:'#8E24AA'},      // 5: 5點
+    {name:'粉紅',nameEN:'Pink',hex:'#F06292'},      // 6: 6點
+    {name:'棕色',nameEN:'Brown',hex:'#8D6E63'},     // 7: 7點
+    {name:'黑',nameEN:'Black',hex:'#1F1F1F'},       // 8: 8點
+    {name:'灰',nameEN:'Gray',hex:'#757575'},        // 9: 9點
+    {name:'白',nameEN:'White',hex:'#FFFFFF'},       // 10: 10點
+    {name:'青',nameEN:'Cyan',hex:'#00897B'}         // 11: 11點
   ];
 
   const maxSelect = 6;
@@ -169,11 +169,11 @@
   function positionColorsInCircle(){
     const size = containerEl.offsetWidth;
     const center = size / 2;
-    const radius = size / 2.4; // 更大的半徑
-    const buttonSize = 90; // 按鈕大小
+    const radius = size / 2.4;
+    const buttonSize = 90;
 
     palette.forEach((p, idx)=>{
-      const angle = (idx / palette.length) * 2 * Math.PI - Math.PI / 2; // 從12點開始
+      const angle = (idx / palette.length) * 2 * Math.PI - Math.PI / 2;
       const x = center + radius * Math.cos(angle) - buttonSize / 2;
       const y = center + radius * Math.sin(angle) - buttonSize / 2;
 
@@ -182,7 +182,7 @@
       d.style.background = p.hex; 
       d.style.left = x + 'px';
       d.style.top = y + 'px';
-      if(isLight(p.hex)) d.style.color = '#999'; 
+      if(isLight(p.hex)) d.style.color = '#333'; 
       const displayText = isEnglish ? p.nameEN : p.name;
       d.textContent = displayText;
       d.setAttribute('aria-label', p.name); 
