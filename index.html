@@ -17,29 +17,29 @@
   .ctrl-btn.trash{background:#2563eb}
   .ctrl-btn.secondary{background:#64748b}
 
-  .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;align-content:start}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;align-content:start;justify-items:center}
 
   .swatch{
-    border-radius:10px;position:relative;touch-action:manipulation;display:flex;align-items:center;justify-content:center;flex-direction:column;transition: transform .18s ease, box-shadow .18s ease;transform-origin:center;cursor:pointer;
-    height:75px;overflow:hidden;border:1px solid rgba(0,0,0,0.03);font-size:16px;color:#333;font-weight:600;text-align:center;padding:4px;box-sizing:border-box;
+    border-radius:50%;position:relative;touch-action:manipulation;display:flex;align-items:center;justify-content:center;flex-direction:column;transition: transform .18s ease, box-shadow .18s ease;transform-origin:center;cursor:pointer;
+    width:90px;height:90px;overflow:hidden;border:1px solid rgba(0,0,0,0.03);font-size:16px;color:#333;font-weight:600;text-align:center;padding:0;box-sizing:border-box;
   }
-  .swatch .check{display:none;position:absolute;top:6px;right:6px;width:28px;height:28px;border-radius:14px;background:rgba(0,0,0,0.35);color:#fff;align-items:center;justify-content:center;font-size:14px}
-  .swatch.sel{transform: scale(1.08);box-shadow:0 12px 28px rgba(0,0,0,0.25);outline:3px solid rgba(255,255,255,0.3)}
+  .swatch .check{display:none;position:absolute;top:4px;right:4px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,0.35);color:#fff;align-items:center;justify-content:center;font-size:16px}
+  .swatch.sel{transform: scale(1.15);box-shadow:0 12px 28px rgba(0,0,0,0.3);outline:4px solid rgba(255,255,255,0.4)}
   .swatch.sel .check{display:flex}
-  .swatch:active{transform:scale(0.96)}
+  .swatch:active{transform:scale(1.05)}
 
   .count{font-weight:600;color:#334155}
   .bubble{position:absolute;width:72px;height:72px;border-radius:50%;pointer-events:none;mix-blend-mode:screen;transform:translate(var(--x),var(--y)) scale(var(--s));opacity:var(--o);transition:transform .8s cubic-bezier(.2,.9,.3,1),opacity .8s}
   .hint{color:#6b7280;font-size:13px;margin-top:8px;text-align:center}
 
   @media (max-width:900px){
-    .grid{grid-template-columns:repeat(4,1fr)}
-    .swatch{height:85px;font-size:15px}
+    .grid{grid-template-columns:repeat(3,1fr);gap:10px}
+    .swatch{width:80px;height:80px;font-size:14px}
     .result{height:260px}
   }
   @media (max-width:520px){
-    .grid{grid-template-columns:repeat(3,1fr)}
-    .swatch{height:95px;font-size:14px}
+    .grid{grid-template-columns:repeat(3,1fr);gap:8px}
+    .swatch{width:75px;height:75px;font-size:12px}
     .result{height:220px}
   }
 </style>
@@ -62,24 +62,32 @@
 
   <div id="palette" class="grid" style="margin-top:8px"></div>
 
-  <div class="hint" aria-hidden="true">點選顏色，最多選 6 色</div>
+  <div class="hint" aria-hidden="true">點選顏色，最多選 6 色 • 相鄰顏色混合看中間的色彩</div>
 </div>
 
 <script>
 (() => {
+  // 12色色輪排列：按照色輪順序，相鄰的顏色混合會產生中間的顏色
   const palette = [
+    // 第1行（4色）：紅 橙 黃 綠
     {name:'紅',nameEN:'Red',hex:'#E53935'},
     {name:'橙',nameEN:'Orange',hex:'#FB8C00'},
     {name:'黃',nameEN:'Yellow',hex:'#FDD835'},
     {name:'綠',nameEN:'Green',hex:'#43A047'},
+    
+    // 第2行（3色）：空 青藍 藍
+    {name:'青',nameEN:'Teal',hex:'#00897B'},
     {name:'藍',nameEN:'Blue',hex:'#1E88E5'},
     {name:'紫',nameEN:'Purple',hex:'#8E24AA'},
+    
+    // 第3行（2色）：空 粉
     {name:'粉',nameEN:'Pink',hex:'#F06292'},
     {name:'棕',nameEN:'Brown',hex:'#8D6E63'},
+    
+    // 第4行（3色）：灰 白 黑
     {name:'灰',nameEN:'Gray',hex:'#9E9E9E'},
     {name:'白',nameEN:'White',hex:'#FFFFFF'},
-    {name:'黑',nameEN:'Black',hex:'#000000'},
-    {name:'青',nameEN:'Teal',hex:'#00897B'}
+    {name:'黑',nameEN:'Black',hex:'#000000'}
   ];
 
   const maxSelect = 6;
