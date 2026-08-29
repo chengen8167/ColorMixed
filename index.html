@@ -9,27 +9,24 @@
   html,body{height:100%;margin:0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:#f6f7fb}
   .wrap{max-width:1000px;margin:0 auto;padding:12px;height:100vh;display:flex;flex-direction:column}
 
-  /* result small so palette fits on one screen */
   .result {
     height:160px;border-radius:12px;background:#fff;box-shadow:0 8px 20px rgba(0,0,0,.12);position:relative;overflow:hidden;margin-bottom:10px;flex:0 0 auto;
   }
   .icon-row{display:flex;align-items:center;gap:10px;padding:8px;flex:0 0 auto}
-  .ctrl-btn{width:44px;height:44px;border-radius:10px;border:0;background:#0ea5a4;color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px}
+  .ctrl-btn{width:44px;height:44px;border-radius:10px;border:0;background:#0ea5a4;color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer}
   .ctrl-btn.trash{background:#2563eb}
   .ctrl-btn.secondary{background:#64748b}
 
-  /* grid tuned to show all colors on one screen */
   .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;align-content:start}
 
   .swatch{
-    border-radius:10px;position:relative;touch-action:manipulation;display:flex;align-items:flex-start;justify-content:flex-end;transition: transform .18s ease, box-shadow .18s ease, outline .18s ease;transform-origin:center;
-    height:calc((100vh - 160px - 80px - 24px) / 4); /* result + controls + padding distributed into 4 rows */
-    min-height:48px;overflow:hidden;border:1px solid rgba(0,0,0,0.03);
+    border-radius:10px;position:relative;touch-action:manipulation;display:flex;align-items:center;justify-content:center;flex-direction:column;transition: transform .18s ease, box-shadow .18s ease;transform-origin:center;cursor:pointer;
+    height:80px;overflow:hidden;border:1px solid rgba(0,0,0,0.03);font-size:11px;color:#333;font-weight:600;text-align:center;padding:4px;box-sizing:border-box;
   }
-  .swatch .check{display:none;position:absolute;top:6px;right:6px;width:30px;height:30px;border-radius:14px;background:rgba(0,0,0,0.35);color:#fff;align-items:center;justify-content:center;display:flex;font-size:14px}
-  .swatch.sel{transform: translateY(-6px) scale(1.05);box-shadow:0 12px 28px rgba(0,0,0,0.25);outline:4px solid rgba(255,255,255,0.22)}
+  .swatch .check{display:none;position:absolute;top:6px;right:6px;width:28px;height:28px;border-radius:14px;background:rgba(0,0,0,0.35);color:#fff;align-items:center;justify-content:center;font-size:14px}
+  .swatch.sel{transform: scale(1.08);box-shadow:0 12px 28px rgba(0,0,0,0.25);outline:3px solid rgba(255,255,255,0.3)}
   .swatch.sel .check{display:flex}
-  .swatch:active{transform:scale(0.98)}
+  .swatch:active{transform:scale(0.96)}
 
   .count{font-weight:600;color:#334155}
   .bubble{position:absolute;width:72px;height:72px;border-radius:50%;pointer-events:none;mix-blend-mode:screen;transform:translate(var(--x),var(--y)) scale(var(--s));opacity:var(--o);transition:transform .8s cubic-bezier(.2,.9,.3,1),opacity .8s}
@@ -37,12 +34,11 @@
 
   @media (max-width:900px){
     .grid{grid-template-columns:repeat(4,1fr)}
-    /* use 6 rows for smaller screens (adjust so all visible) */
-    .swatch{height:calc((100vh - 160px - 120px - 24px) / 6)}
+    .swatch{height:90px}
   }
-  @media (max-width:420px){
+  @media (max-width:520px){
     .grid{grid-template-columns:repeat(3,1fr)}
-    .swatch{height:64px}
+    .swatch{height:100px;font-size:12px}
     .result{height:140px}
   }
 </style>
@@ -62,7 +58,7 @@
     <div style="width:8px"></div>
     <button id="saveBtn" class="ctrl-btn" title="儲存" aria-label="儲存">⬇️</button>
     <div style="width:8px"></div>
-    <button id="langBtn" class="ctrl-btn secondary" title="語音切換" aria-label="語音切換">中</button>
+    <button id="langBtn" class="ctrl-btn secondary" title="語言切換" aria-label="語言切換">中</button>
   </div>
 
   <div id="palette" class="grid" style="margin-top:8px"></div>
@@ -74,13 +70,18 @@
 <script>
 (() => {
   const palette = [
-    {name:'紅',hex:'#E53935'},{name:'珊瑚',hex:'#FF7043'},{name:'橙',hex:'#FB8C00'},{name:'金',hex:'#FFB300'},
-    {name:'黃',hex:'#FDD835'},{name:'奶油',hex:'#FFF176'},{name:'淺綠',hex:'#DCE775'},{name:'葉綠',hex:'#C5E1A5'},
-    {name:'綠',hex:'#43A047'},{name:'青',hex:'#00897B'},{name:'青藍',hex:'#00ACC1'},{name:'天藍',hex:'#26C6DA'},
-    {name:'藍',hex:'#1E88E5'},{name:'靛藍',hex:'#5C6BC0'},{name:'紫',hex:'#8E24AA'},{name:'薰衣',hex:'#D1C4E9'},
-    {name:'粉',hex:'#F06292'},{name:'粉亮',hex:'#FF80AB'},{name:'棕',hex:'#BCAAA4'},{name:'淺棕',hex:'#8D6E63'},
-    {name:'深棕',hex:'#6D4C41'},{name:'咖',hex:'#795548'},{name:'灰',hex:'#9E9E9E'},{name:'白',hex:'#FFFFFF'},
-    {name:'黑',hex:'#000000'}
+    {name:'紅',nameEN:'Red',hex:'#E53935'},
+    {name:'橙',nameEN:'Orange',hex:'#FB8C00'},
+    {name:'黃',nameEN:'Yellow',hex:'#FDD835'},
+    {name:'綠',nameEN:'Green',hex:'#43A047'},
+    {name:'藍',nameEN:'Blue',hex:'#1E88E5'},
+    {name:'紫',nameEN:'Purple',hex:'#8E24AA'},
+    {name:'粉',nameEN:'Pink',hex:'#F06292'},
+    {name:'棕',nameEN:'Brown',hex:'#8D6E63'},
+    {name:'灰',nameEN:'Gray',hex:'#9E9E9E'},
+    {name:'白',nameEN:'White',hex:'#FFFFFF'},
+    {name:'黑',nameEN:'Black',hex:'#000000'},
+    {name:'青',nameEN:'Teal',hex:'#00897B'}
   ];
 
   const maxSelect = 6;
@@ -93,21 +94,31 @@
   const clearBtn = document.getElementById('clearBtn');
   const langBtn = document.getElementById('langBtn');
 
-  let speechLang = 'zh-TW'; // 'en-US' or 'zh-TW'
+  let isEnglish = false;
 
-  const speak = (t) => {
+  const speak = (text, lang) => {
     try {
-      const u = new SpeechSynthesisUtterance(t);
-      u.lang = speechLang;
-      u.rate = 0.8;
       speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = lang === 'en' ? 'en-US' : 'zh-TW';
+      u.rate = lang === 'en' ? 1.0 : 0.8;
       speechSynthesis.speak(u);
     } catch(e){}
   };
 
   const tap = (() => {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    return ()=>{ const o = ctx.createOscillator(), g = ctx.createGain(); o.type='sine'; o.frequency.value=880; g.gain.value=0.0001; o.connect(g); g.connect(ctx.destination); o.start(); g.gain.exponentialRampToValueAtTime(0.02, ctx.currentTime + 0.001); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.12); setTimeout(()=>{ o.stop() }, 160); };
+    return ()=>{ 
+      try {
+        const o = ctx.createOscillator(), g = ctx.createGain(); 
+        o.type='sine'; o.frequency.value=880; g.gain.value=0.0001; 
+        o.connect(g); g.connect(ctx.destination); 
+        o.start(); 
+        g.gain.exponentialRampToValueAtTime(0.02, ctx.currentTime + 0.001); 
+        g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.12); 
+        setTimeout(()=>{ o.stop() }, 160); 
+      } catch(e){}
+    };
   })();
 
   function hexToRgb(hex){ const h = hex.replace('#',''); const v = parseInt(h,16); return [(v>>16)&255,(v>>8)&255,v&255].map(x=>x/255); }
@@ -126,25 +137,77 @@
 
   function spawnBubble(colorHex){ const b = document.createElement('div'); b.className='bubble'; b.style.background = colorHex; const rw = resultEl.clientWidth, rh = resultEl.clientHeight; const startX = (Math.random()*rw - rw/2) + 'px'; const startY = (-rh/2 + 20) + 'px'; b.style.setProperty('--x', startX); b.style.setProperty('--y', startY); b.style.setProperty('--s','0.6'); b.style.setProperty('--o','0'); resultEl.appendChild(b); requestAnimationFrame(()=>{ b.style.setProperty('--x','0px'); b.style.setProperty('--y','0px'); b.style.setProperty('--s','1'); b.style.setProperty('--o','0.95'); setTimeout(()=>{ b.style.setProperty('--s','0.6'); b.style.setProperty('--o','0'); b.style.setProperty('--y','10px'); setTimeout(()=>{ b.remove() }, 900); }, 900); }); }
 
-  function toggleIndex(i){ if(selected.has(i)){ selected.delete(i); } else { if(selected.size >= maxSelect) { resultEl.animate([{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'translateX(0)'}],{duration:220}); return; } selected.add(i); spawnBubble(palette[i].hex); } tap(); speak(palette[i].name); updateSwatches(); mixSelected(); }
+  function toggleIndex(i){ 
+    if(selected.has(i)){ selected.delete(i); } 
+    else { 
+      if(selected.size >= maxSelect) { resultEl.animate([{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'translateX(0)'}],{duration:220}); return; } 
+      selected.add(i); spawnBubble(palette[i].hex); 
+    } 
+    tap(); 
+    const colorName = isEnglish ? palette[i].nameEN : palette[i].name;
+    speak(colorName, isEnglish ? 'en' : 'zh');
+    updateSwatches(); 
+    mixSelected(); 
+  }
 
-  function updateSwatches(){ paletteEl.querySelectorAll('.swatch').forEach((el, idx) => { const isSel = selected.has(idx); el.classList.toggle('sel', isSel); el.setAttribute('aria-pressed', isSel ? 'true' : 'false'); const check = el.querySelector('.check'); if (check) check.style.display = isSel ? 'flex' : 'none'; }); }
+  function updateSwatches(){ 
+    paletteEl.querySelectorAll('.swatch').forEach((el, idx) => { 
+      const isSel = selected.has(idx); 
+      el.classList.toggle('sel', isSel); 
+      el.setAttribute('aria-pressed', isSel ? 'true' : 'false'); 
+      const check = el.querySelector('.check'); 
+      if (check) check.style.display = isSel ? 'flex' : 'none'; 
+    }); 
+  }
 
-  // build UI
-  palette.forEach((p, idx)=>{ const d = document.createElement('button'); d.className='swatch'; d.style.background = p.hex; if(isLight(p.hex)) d.style.border = '1px solid rgba(0,0,0,0.12)'; d.setAttribute('aria-label', p.name); d.innerHTML = '<div class="check">✓</div>'; d.addEventListener('click', ()=> toggleIndex(idx)); paletteEl.appendChild(d); });
-
-  clearBtn.addEventListener('click', ()=>{ selected.clear(); updateSwatches(); mixSelected(); tap(); });
-  helpBtn.addEventListener('click', ()=>{ speak(speechLang==='zh-TW' ? '點選大顏色按鈕，最多選六色，看看混合結果。' : 'Tap a color, pick up to six, see the mix.'); });
-  saveBtn.addEventListener('click', ()=>{ html2canvas(resultEl, {useCORS:true}).then(canvas=>{ const data = canvas.toDataURL('image/png'); const a = document.createElement('a'); a.href = data; a.download = 'mix.png'; if(navigator.userAgent.match(/iPhone|iPad|iPod/)){ const w = window.open(data, '_blank'); if(!w) alert(speechLang==='zh-TW' ? '開啟新分頁受阻，請使用截圖保存。' : 'Unable to open new tab, please use screenshot.'); } else { a.click(); } }).catch(()=>{ alert(speechLang==='zh-TW' ? '無法自動儲存，請使用系統截圖。' : 'Cannot save automatically, please use screenshot.'); }); });
-
-  langBtn.addEventListener('click', ()=>{
-    speechLang = (speechLang === 'zh-TW') ? 'en-US' : 'zh-TW';
-    langBtn.textContent = (speechLang === 'zh-TW') ? '中' : 'EN';
-    // brief confirmation
-    speak(speechLang === 'zh-TW' ? '中文語音' : 'English voice');
+  palette.forEach((p, idx)=>{ 
+    const d = document.createElement('button'); 
+    d.className='swatch'; 
+    d.style.background = p.hex; 
+    if(isLight(p.hex)) d.style.color = '#999'; 
+    const displayText = isEnglish ? p.nameEN : p.name;
+    d.textContent = displayText;
+    d.setAttribute('aria-label', p.name); 
+    d.innerHTML += '<div class="check">✓</div>'; 
+    d.addEventListener('click', ()=> toggleIndex(idx)); 
+    paletteEl.appendChild(d); 
   });
 
-  // initial
+  clearBtn.addEventListener('click', ()=>{ selected.clear(); updateSwatches(); mixSelected(); tap(); });
+  helpBtn.addEventListener('click', ()=>{ 
+    const msg = isEnglish ? 'Tap a color, pick up to six, see the mix.' : '點選大顏色按鈕，最多選六色。';
+    speak(msg, isEnglish ? 'en' : 'zh');
+  });
+  saveBtn.addEventListener('click', ()=>{ 
+    html2canvas(resultEl, {useCORS:true}).then(canvas=>{ 
+      const data = canvas.toDataURL('image/png'); 
+      const a = document.createElement('a'); 
+      a.href = data; 
+      a.download = 'mix.png'; 
+      if(navigator.userAgent.match(/iPhone|iPad|iPod/)){ 
+        const w = window.open(data, '_blank'); 
+        if(!w) alert(isEnglish ? 'Screenshot recommended.' : '請使用截圖保存。'); 
+      } else { 
+        a.click(); 
+      } 
+    }).catch(()=>{ 
+      alert(isEnglish ? 'Screenshot recommended.' : '請使用系統截圖。'); 
+    }); 
+  });
+
+  langBtn.addEventListener('click', ()=>{
+    isEnglish = !isEnglish;
+    langBtn.textContent = isEnglish ? 'EN' : '中';
+    paletteEl.querySelectorAll('.swatch').forEach((el, idx)=>{
+      const displayText = isEnglish ? palette[idx].nameEN : palette[idx].name;
+      const checkHTML = '<div class="check">✓</div>';
+      el.textContent = displayText;
+      el.innerHTML += checkHTML;
+    });
+    const msg = isEnglish ? 'English' : '中文';
+    speak(msg, isEnglish ? 'en' : 'zh');
+  });
+
   mixSelected();
 
 })();
