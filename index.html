@@ -15,11 +15,11 @@
   .ctrl-btn.trash{background:#2563eb;width:52px;height:52px;font-size:20px}
   .ctrl-btn.secondary{background:#64748b}
 
-  .grid-container{position:relative;width:100%;max-width:650px;aspect-ratio:1/1;margin:40px auto 0;display:flex;align-items:center;justify-content:center;flex:1}
+  .grid-container{position:relative;width:100%;max-width:650px;aspect-ratio:1/1;margin:40px auto 0;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
   .grid{position:absolute;width:100%;height:100%;top:0;left:0}
 
   .result {
-    position:absolute;width:200px;height:200px;border-radius:50%;background:#fff;box-shadow:0 8px 20px rgba(0,0,0,.12);z-index:10;display:flex;align-items:center;justify-content:center;flex-direction:column;
+    position:absolute;width:200px;height:200px;border-radius:50%;background:#fff;box-shadow:0 8px 20px rgba(0,0,0,.12);z-index:10;display:flex;align-items:center;justify-content:center;flex-direction:column;pointer-events:none;
   }
   .result-label{font-size:12px;color:#6b7280;font-weight:500;margin-top:6px}
 
@@ -166,15 +166,19 @@
 
   // 計算色輪圓形排列位置
   function positionColorsInCircle(){
-    const size = containerEl.offsetWidth;
-    const center = size / 2;
-    const radius = size / 2.4; // 更大的半徑
-    const buttonSize = 90; // 按鈕大小
+    const { width, height } = containerEl.getBoundingClientRect();
+    const wheelSize = Math.min(width, height);
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const buttonSize = window.innerWidth <= 520 ? 70 : window.innerWidth <= 900 ? 80 : 90;
+    const radius = Math.max(0, wheelSize / 2 - buttonSize / 2 - 8);
+
+    paletteEl.innerHTML = '';
 
     palette.forEach((p, idx)=>{
       const angle = (idx / palette.length) * 2 * Math.PI - Math.PI / 2; // 從12點開始
-      const x = center + radius * Math.cos(angle) - buttonSize / 2;
-      const y = center + radius * Math.sin(angle) - buttonSize / 2;
+      const x = centerX + radius * Math.cos(angle) - buttonSize / 2;
+      const y = centerY + radius * Math.sin(angle) - buttonSize / 2;
 
       const d = document.createElement('button'); 
       d.className='swatch'; 
@@ -213,6 +217,7 @@
   // 初始化
   positionColorsInCircle();
   mixSelected();
+  window.addEventListener('resize', ()=>{ positionColorsInCircle(); updateSwatches(); });
 
 })();
 </script>
